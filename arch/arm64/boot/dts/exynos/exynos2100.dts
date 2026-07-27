@@ -14079,7 +14079,7 @@
 			sibling-cpus = "4-6";
 			cal-id = <0xb040003>;
 			dm-type = <0x01>;
-			max-freq = <0x2ad8c0>;
+			max-freq = <0x27ac40>;
 			min-freq = <0x82208>;
 			#cooling-cells = <0x02>;
 			ect-coeff-index = <0x01>;
@@ -14096,7 +14096,7 @@
 			sibling-cpus = [37 00];
 			cal-id = <0xb040004>;
 			dm-type = <0x02>;
-			max-freq = <0x2c6f00>;
+			max-freq = <0x27ac40>;
 			min-freq = <0x82208>;
 			#cooling-cells = <0x02>;
 			ect-coeff-index = <0x00>;
