@@ -44,6 +44,6 @@ export DO_TAR="1"
 
 info "Generated packages"
 find "$KERNEL_DIR/build" -maxdepth 1 -type f \
-    \( -name 'Floppy_*KSUNext*.zip' -o -name 'Floppy*KSUNext*.tar' \) \
+    \( -name '*_v*-KSUNext-*.zip' -o -name '*_v*-KSUNext-*.tar' \) \
     -printf '  %p\n' |
     sort
