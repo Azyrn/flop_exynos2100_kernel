@@ -49,6 +49,119 @@ int evdev_mt_event[MAX_DEVICE_TYPE_NUM];
 int trigger_cnt;
 int send_ev_enable;
 
+/* Boost enhancement percentage for touch inputs. */
+#define TOUCH_BOOST_ENHANCE_PERCENT	50
+#define TOUCH_INT_BOOST_KHZ		(800 * 1000)
+
+#if IS_ENABLED(CONFIG_SEC_INPUT_BOOSTER_SLSI)
+static bool has_allowed_resource(int res_id)
+{
+	int i;
+
+	for (i = 0; i < allowed_res_count; i++)
+		if (allowed_resources[i] == res_id)
+			return true;
+
+	return false;
+}
+
+static int get_touch_boost_cpu_resource(void)
+{
+	int i;
+	bool has_cluster2 = false;
+	bool has_cluster1 = false;
+	bool has_cluster0 = false;
+
+	for (i = 0; i < allowed_res_count; i++) {
+		switch (allowed_resources[i]) {
+		case CLUSTER2:
+			has_cluster2 = true;
+			break;
+		case CLUSTER1:
+			has_cluster1 = true;
+			break;
+		case CLUSTER0:
+			has_cluster0 = true;
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (has_cluster2)
+		return CLUSTER2;
+	if (has_cluster1)
+		return CLUSTER1;
+	if (has_cluster0)
+		return CLUSTER0;
+
+	return -1;
+}
+#else
+static int get_touch_boost_cpu_resource(void)
+{
+	return -1;
+}
+#endif
+
+static void enhance_touch_boost_values(struct t_ib_device_tree *ib_dt)
+{
+	int cpu_res_id;
+	int head_val, tail_val;
+
+	/* Only enhance TOUCH and MULTI_TOUCH types */
+	if (ib_dt->type != TOUCH && ib_dt->type != MULTI_TOUCH)
+		return;
+
+	cpu_res_id = get_touch_boost_cpu_resource();
+	if (cpu_res_id < 0)
+		return;
+
+	head_val = ib_dt->res[cpu_res_id].head_value;
+	tail_val = ib_dt->res[cpu_res_id].tail_value;
+
+	if (head_val > 0) {
+		head_val += (head_val * TOUCH_BOOST_ENHANCE_PERCENT) / 100;
+		ib_dt->res[cpu_res_id].head_value = head_val;
+	}
+
+	if (tail_val > 0) {
+		tail_val += (tail_val * TOUCH_BOOST_ENHANCE_PERCENT) / 100;
+		ib_dt->res[cpu_res_id].tail_value = tail_val;
+	}
+
+	/*
+	 * SystemUI and launcher gesture work often runs on the mid cluster
+	 * after the system settles, so mirror the boosted touch floor there
+	 * when the board DTS only describes the big-cluster resource.
+	 */
+	if (cpu_res_id != CLUSTER1 && !ib_dt->res[CLUSTER1].head_value &&
+	    !ib_dt->res[CLUSTER1].tail_value) {
+		ib_dt->res[CLUSTER1].res_id = CLUSTER1;
+		ib_dt->res[CLUSTER1].label = "cluster1";
+		ib_dt->res[CLUSTER1].head_value = ib_dt->res[cpu_res_id].head_value;
+		ib_dt->res[CLUSTER1].tail_value = ib_dt->res[cpu_res_id].tail_value;
+	}
+
+	/*
+	 * The runtime input-booster configs on this platform keep INT at 0
+	 * for touch, but the display path still needs more headroom than that
+	 * once the boot-time QoS grace period expires. Give touch a stronger
+	 * INT floor so UI drags do not depend on the rest of the system
+	 * already being hot.
+	 */
+	if (!ib_dt->res[INT].head_value && !ib_dt->res[INT].tail_value) {
+		ib_dt->res[INT].res_id = INT;
+		ib_dt->res[INT].label = "int";
+		ib_dt->res[INT].head_value = TOUCH_INT_BOOST_KHZ;
+		ib_dt->res[INT].tail_value = TOUCH_INT_BOOST_KHZ;
+	}
+
+	pr_info(ITAG"Enhanced %s boost: %s head=%d KHz, tail=%d KHz",
+		ib_dt->label, ib_dt->res[cpu_res_id].label ?: "cpu",
+		ib_dt->res[cpu_res_id].head_value, ib_dt->res[cpu_res_id].tail_value);
+}
+
 struct t_ib_info* find_release_ib(int dev_type, int key_id);
 struct t_ib_info* create_ib_instance(struct t_ib_trigger* p_IbTrigger, int uniqId);
 bool is_validate_uniqid(unsigned int uniq_id);
@@ -896,11 +1009,22 @@ void input_booster_init(void)
 			break;
 		}
 
+		/* Enhance touch boost values */
+		enhance_touch_boost_values(ib_dt);
+
 		//Init all type of ib list.
 		INIT_LIST_HEAD(&ib_list[device_count]);
 
 		device_count++;
 	}
+
+#if IS_ENABLED(CONFIG_SEC_INPUT_BOOSTER_SLSI)
+	if (!has_allowed_resource(CLUSTER1) && has_allowed_resource(CLUSTER2) &&
+	    allowed_res_count < max_resource_count) {
+		allowed_resources[allowed_res_count++] = CLUSTER1;
+		pr_info(ITAG" Added synthesized cluster1 touch boost resource");
+	}
+#endif
 
 	ib_init_succeed = is_ib_init_succeed();
 	pr_info(ITAG" Total Input Device Count(%d), IsSuccess(%d)", device_count, ib_init_succeed);
