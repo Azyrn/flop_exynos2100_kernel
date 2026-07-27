@@ -1,0 +1,222 @@
+From 623a2c7325e9cd6eee69107e5eaa2d81d0f49263 Mon Sep 17 00:00:00 2001
+From: skeler <salahlsxusa@gmail.com>
+Date: Mon, 27 Jul 2026 00:33:39 +0100
+Subject: [PATCH 1/4] ci: add manual Exynos 2100 kernel build workflow
+
+---
+ .github/workflows/build.yml | 203 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 203 insertions(+)
+ create mode 100644 .github/workflows/build.yml
+
+diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
+new file mode 100644
+index 000000000..740a265fa
+--- /dev/null
++++ b/.github/workflows/build.yml
+@@ -0,0 +1,203 @@
++name: Build FloppyKernel Exynos 2100
++
++on:
++  workflow_dispatch:
++    inputs:
++      variant:
++        description: Kernel variant to build
++        required: true
++        default: vanilla
++        type: choice
++        options:
++          - vanilla
++          - ksunext
++          - resukisu
++          - xxksu
++      release:
++        description: Disable LOCALVERSION_AUTO and mark the build as a release
++        required: true
++        default: false
++        type: boolean
++
++permissions:
++  contents: read
++
++concurrency:
++  group: exynos2100-${{ github.ref }}-${{ inputs.variant }}
++  cancel-in-progress: false
++
++jobs:
++  build:
++    name: ${{ inputs.variant }}
++    runs-on: ubuntu-24.04
++    timeout-minutes: 180
++    env:
++      CLANG_REVISION: r596125
++
++    steps:
++      - name: Checkout kernel source
++        uses: actions/checkout@v4
++        with:
++          fetch-depth: 1
++          submodules: false
++
++      - name: Free runner disk space
++        run: |
++          sudo rm -rf \
++            /usr/local/lib/android \
++            /usr/share/dotnet \
++            /opt/ghc \
++            /usr/local/share/boost
++          df -h /
++
++      - name: Install build dependencies
++        run: |
++          sudo apt-get update -qq
++          DEBIAN_FRONTEND=noninteractive sudo apt-get install -yq \
++            bc \
++            binutils-aarch64-linux-gnu \
++            brotli \
++            ccache \
++            cpio \
++            curl \
++            flex \
++            kmod \
++            lz4 \
++            python3 \
++            tar \
++            unzip \
++            wget \
++            xz-utils \
++            zip \
++            zstd
++
++      - name: Initialize required mkbootimg submodule
++        run: git submodule update --init --depth=1 build/mkbootimg
++
++      - name: Install pinned AOSP Clang
++        run: |
++          toolchain_dir="${GITHUB_WORKSPACE}/../toolchains/aospclang"
++          archive_url="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/mirror-goog-main-llvm-toolchain-source/${CLANG_REVISION}.tar.gz"
++          mkdir -p "$toolchain_dir"
++          curl --fail --location --retry 3 --retry-all-errors "$archive_url" |
++            tar -xz -C "$toolchain_dir"
++          touch \
++            "$toolchain_dir/bin/aarch64-linux-gnu-elfedit" \
++            "$toolchain_dir/bin/arm-linux-gnueabi-elfedit"
++          chmod +x \
++            "$toolchain_dir/bin/aarch64-linux-gnu-elfedit" \
++            "$toolchain_dir/bin/arm-linux-gnueabi-elfedit"
++          "$toolchain_dir/bin/clang" --version
++          "$toolchain_dir/bin/ld.lld" --version
++
++      - name: Select build arguments
++        id: build_args
++        shell: bash
++        run: |
++          case "${{ inputs.variant }}" in
++            vanilla) args="q" ;;
++            ksunext) args="kq" ;;
++            resukisu) args="sq" ;;
++            xxksu) args="xq" ;;
++            *) echo "Unsupported variant: ${{ inputs.variant }}" >&2; exit 1 ;;
++          esac
++
++          if [ "${{ inputs.release }}" = "true" ]; then
++            args="${args}R"
++          fi
++
++          echo "args=$args" >> "$GITHUB_OUTPUT"
++          echo "Building variant '${{ inputs.variant }}' with arguments '$args'"
++
++      - name: Build kernel and flashable packages
++        env:
++          USE_CCACHE: "1"
++          DO_ZIP: "1"
++          DO_TAR: "1"
++        run: ./do_build.sh "${{ steps.build_args.outputs.args }}"
++
++      - name: Verify and stage artifacts
++        id: artifacts
++        shell: bash
++        run: |
++          set -euo pipefail
++          shopt -s nullglob
++
++          flashable_zips=(build/Floppy_*.zip)
++          oneui_tars=(build/FloppyOneUI_*.tar)
++          aosp_tars=(build/FloppyAOSP_*.tar)
++
++          if [ "${#flashable_zips[@]}" -ne 1 ]; then
++            echo "Expected exactly one flashable ZIP, found ${#flashable_zips[@]}" >&2
++            exit 1
++          fi
++          if [ "${#oneui_tars[@]}" -ne 1 ] || [ "${#aosp_tars[@]}" -ne 1 ]; then
++            echo "Expected one OneUI TAR and one AOSP TAR" >&2
++            exit 1
++          fi
++
++          unzip -tq "${flashable_zips[0]}"
++          for tar_path in "${oneui_tars[0]}" "${aosp_tars[0]}"; do
++            tar -tf "$tar_path"
++            tar -xOf "$tar_path" boot.img.lz4 | lz4 -t >/dev/null
++            tar -xOf "$tar_path" vendor_boot.img.lz4 | lz4 -t >/dev/null
++          done
++
++          mkdir -p artifact/flashable artifact/odin artifact/debug
++          cp "${flashable_zips[0]}" artifact/flashable/
++          cp "${oneui_tars[0]}" "${aosp_tars[0]}" artifact/odin/
++          cp out/arch/arm64/boot/Image artifact/debug/
++          cp out/arch/arm64/boot/dts/exynos/exynos2100.dtb artifact/debug/
++          cp out/.config log.txt artifact/debug/
++          git rev-parse HEAD > artifact/debug/commit.txt
++
++          (
++            cd artifact
++            sha256sum \
++              flashable/*.zip \
++              odin/*.tar \
++              debug/Image \
++              debug/exynos2100.dtb > SHA256SUMS
++          )
++
++          short_sha="${GITHUB_SHA::7}"
++          echo "suffix=${{ inputs.variant }}-${short_sha}" >> "$GITHUB_OUTPUT"
++
++      - name: Upload flashable ZIP
++        uses: actions/upload-artifact@v4
++        with:
++          name: flashable-${{ steps.artifacts.outputs.suffix }}
++          path: artifact/flashable/*.zip
++          if-no-files-found: error
++          compression-level: 0
++          retention-days: 30
++
++      - name: Upload Odin TARs
++        uses: actions/upload-artifact@v4
++        with:
++          name: odin-${{ steps.artifacts.outputs.suffix }}
++          path: artifact/odin/*.tar
++          if-no-files-found: error
++          compression-level: 0
++          retention-days: 30
++
++      - name: Upload build manifest and debug files
++        uses: actions/upload-artifact@v4
++        with:
++          name: debug-${{ steps.artifacts.outputs.suffix }}
++          path: |
++            artifact/SHA256SUMS
++            artifact/debug/*
++          if-no-files-found: error
++          retention-days: 30
++
++      - name: Upload failure logs
++        if: failure()
++        uses: actions/upload-artifact@v4
++        with:
++          name: failed-build-${{ inputs.variant }}-${{ github.run_id }}
++          path: |
++            log.txt
++            out/.config
++          if-no-files-found: ignore
++          retention-days: 14
+-- 
+2.55.0
+

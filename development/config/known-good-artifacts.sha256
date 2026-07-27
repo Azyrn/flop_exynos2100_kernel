@@ -1,0 +1,9 @@
+a03f32ee674ee137c1f0cc24f0b005d8db46f1b9b86c35dcbf1dcfd9a924dcd4  toolchains/clang-r596125.tar.gz
+809dd3217c8685ae81ffa006f915b542a4d803078ccd0c964cb0e97c665f06dc  kernel/.github/workflows/build.yml
+649600f42564e48148df41c6fcf0c3b6458ba7766ebccdda5e3ab2cab50d0028  builds/github-actions/run-30227478714/flashable-ksunext-629ae72/Floppy_v1.1.2-KSUNext-SUSFS-exynos2100-20260727-0032.zip
+a20673fc6931e1bba58d0d58583cfdaedf48542cbdefb3c7b0eac49d0ba50143  builds/github-actions/run-30227478714/debug-ksunext-629ae72/debug/Image
+a4821edd1a9d4ca184921f254c555b6f9dbd9dcb2df7a0941d1f63801ad2723d  builds/github-actions/run-30227478714/debug-ksunext-629ae72/debug/exynos2100.dtb
+56643a375e8344c39c55cf03ffc6bf8f8d7b81f2f9b58bf95461e8a9d72528ad  patches/0001-ci-add-manual-Exynos-2100-kernel-build-workflow.patch
+59ff240b4d2bc3f6651aeae05a771d29c6c33c3672f81c605eb3fb72c13bb031  patches/0002-ci-fix-pinned-toolchain-download-and-update-actions.patch
+0dc0f4f995610215675fe4a53f09fe9127284c75d927262833c9340d65c3a906  patches/0003-ci-preserve-config-in-debug-artifact.patch
+62f7844975b1c3b8de2265dc065a47668ca90b7e8160eca4009114843f6ee9fb  patches/0004-ci-build-KernelSU-Next-only.patch

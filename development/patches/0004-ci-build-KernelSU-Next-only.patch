@@ -1,0 +1,106 @@
+From 629ae7243bdabb79f8aea3c6d5e391a74bdb1f5b Mon Sep 17 00:00:00 2001
+From: skeler <salahlsxusa@gmail.com>
+Date: Mon, 27 Jul 2026 01:27:04 +0100
+Subject: [PATCH 4/4] ci: build KernelSU Next only
+
+---
+ .github/workflows/build.yml | 49 ++++++-------------------------------
+ 1 file changed, 7 insertions(+), 42 deletions(-)
+
+diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
+index 47c141a3a..d6f2a48e1 100644
+--- a/.github/workflows/build.yml
++++ b/.github/workflows/build.yml
+@@ -1,34 +1,18 @@
+-name: Build FloppyKernel Exynos 2100
++name: Build FloppyKernel Exynos 2100 (KernelSU Next)
+ 
+ on:
+   workflow_dispatch:
+-    inputs:
+-      variant:
+-        description: Kernel variant to build
+-        required: true
+-        default: vanilla
+-        type: choice
+-        options:
+-          - vanilla
+-          - ksunext
+-          - resukisu
+-          - xxksu
+-      release:
+-        description: Disable LOCALVERSION_AUTO and mark the build as a release
+-        required: true
+-        default: false
+-        type: boolean
+ 
+ permissions:
+   contents: read
+ 
+ concurrency:
+-  group: exynos2100-${{ github.ref }}-${{ inputs.variant }}
++  group: exynos2100-ksunext-${{ github.ref }}
+   cancel-in-progress: false
+ 
+ jobs:
+   build:
+-    name: ${{ inputs.variant }}
++    name: KernelSU Next
+     runs-on: ubuntu-24.04
+     timeout-minutes: 180
+     env:
+@@ -90,31 +74,12 @@ jobs:
+           "$toolchain_dir/bin/clang" --version
+           "$toolchain_dir/bin/ld.lld" --version
+ 
+-      - name: Select build arguments
+-        id: build_args
+-        shell: bash
+-        run: |
+-          case "${{ inputs.variant }}" in
+-            vanilla) args="q" ;;
+-            ksunext) args="kq" ;;
+-            resukisu) args="sq" ;;
+-            xxksu) args="xq" ;;
+-            *) echo "Unsupported variant: ${{ inputs.variant }}" >&2; exit 1 ;;
+-          esac
+-
+-          if [ "${{ inputs.release }}" = "true" ]; then
+-            args="${args}R"
+-          fi
+-
+-          echo "args=$args" >> "$GITHUB_OUTPUT"
+-          echo "Building variant '${{ inputs.variant }}' with arguments '$args'"
+-
+-      - name: Build kernel and flashable packages
++      - name: Build KernelSU Next kernel and flashable packages
+         env:
+           USE_CCACHE: "1"
+           DO_ZIP: "1"
+           DO_TAR: "1"
+-        run: ./do_build.sh "${{ steps.build_args.outputs.args }}"
++        run: ./do_build.sh kq
+ 
+       - name: Verify and stage artifacts
+         id: artifacts
+@@ -161,7 +126,7 @@ jobs:
+           )
+ 
+           short_sha="${GITHUB_SHA::7}"
+-          echo "suffix=${{ inputs.variant }}-${short_sha}" >> "$GITHUB_OUTPUT"
++          echo "suffix=ksunext-${short_sha}" >> "$GITHUB_OUTPUT"
+ 
+       - name: Upload flashable ZIP
+         uses: actions/upload-artifact@v7
+@@ -195,7 +160,7 @@ jobs:
+         if: failure()
+         uses: actions/upload-artifact@v7
+         with:
+-          name: failed-build-${{ inputs.variant }}-${{ github.run_id }}
++          name: failed-build-ksunext-${{ github.run_id }}
+           path: |
+             log.txt
+             out/.config
+-- 
+2.55.0
+

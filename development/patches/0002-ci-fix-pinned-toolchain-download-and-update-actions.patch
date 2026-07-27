@@ -1,0 +1,66 @@
+From 43068613bc43d37b8c7a7d5140c9cf8dc44182af Mon Sep 17 00:00:00 2001
+From: skeler <salahlsxusa@gmail.com>
+Date: Mon, 27 Jul 2026 00:37:42 +0100
+Subject: [PATCH 2/4] ci: fix pinned toolchain download and update actions
+
+---
+ .github/workflows/build.yml | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
+index 740a265fa..cc331a393 100644
+--- a/.github/workflows/build.yml
++++ b/.github/workflows/build.yml
+@@ -32,11 +32,11 @@ jobs:
+     runs-on: ubuntu-24.04
+     timeout-minutes: 180
+     env:
+-      CLANG_REVISION: r596125
++      CLANG_REVISION: clang-r596125
+ 
+     steps:
+       - name: Checkout kernel source
+-        uses: actions/checkout@v4
++        uses: actions/checkout@v7
+         with:
+           fetch-depth: 1
+           submodules: false
+@@ -164,7 +164,7 @@ jobs:
+           echo "suffix=${{ inputs.variant }}-${short_sha}" >> "$GITHUB_OUTPUT"
+ 
+       - name: Upload flashable ZIP
+-        uses: actions/upload-artifact@v4
++        uses: actions/upload-artifact@v7
+         with:
+           name: flashable-${{ steps.artifacts.outputs.suffix }}
+           path: artifact/flashable/*.zip
+@@ -173,7 +173,7 @@ jobs:
+           retention-days: 30
+ 
+       - name: Upload Odin TARs
+-        uses: actions/upload-artifact@v4
++        uses: actions/upload-artifact@v7
+         with:
+           name: odin-${{ steps.artifacts.outputs.suffix }}
+           path: artifact/odin/*.tar
+@@ -182,7 +182,7 @@ jobs:
+           retention-days: 30
+ 
+       - name: Upload build manifest and debug files
+-        uses: actions/upload-artifact@v4
++        uses: actions/upload-artifact@v7
+         with:
+           name: debug-${{ steps.artifacts.outputs.suffix }}
+           path: |
+@@ -193,7 +193,7 @@ jobs:
+ 
+       - name: Upload failure logs
+         if: failure()
+-        uses: actions/upload-artifact@v4
++        uses: actions/upload-artifact@v7
+         with:
+           name: failed-build-${{ inputs.variant }}-${{ github.run_id }}
+           path: |
+-- 
+2.55.0
+

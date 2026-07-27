@@ -1,0 +1,7 @@
+CLANG_REVISION=clang-r596125
+CLANG_VERSION=22.0.2
+LLD_VERSION=22.0.2
+ARCHIVE=toolchains/clang-r596125.tar.gz
+ARCHIVE_SHA256=a03f32ee674ee137c1f0cc24f0b005d8db46f1b9b86c35dcbf1dcfd9a924dcd4
+ARCHIVE_URL=https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/mirror-goog-main-llvm-toolchain-source/clang-r596125.tar.gz
+LLVM_PROJECT_COMMIT=de03d430485c884861198b25459851f429cbdbad
