@@ -6044,6 +6044,7 @@
 				cirrus,mfd-suffix = "_r";
 				cirrus,bd-suffix = "_1";
 				cirrus,use-fsync-errata;
+				cirrus,amp-gain-zc;
 				cirrus,bd-max-temp = <0x6e>;
 				cirrus,asp-sdout-hiz = <0x03>;
 				cirrus,dsp-noise-gate-enable;
@@ -6089,6 +6090,7 @@
 				cirrus,mfd-suffix = [00];
 				cirrus,bd-suffix = "_0";
 				cirrus,use-fsync-errata;
+				cirrus,amp-gain-zc;
 				cirrus,bd-max-temp = <0x64>;
 				cirrus,asp-sdout-hiz = <0x03>;
 				cirrus,dsp-noise-gate-enable;
