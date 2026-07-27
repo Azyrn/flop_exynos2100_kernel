@@ -1580,11 +1580,13 @@ static int cs35l41_apply_pdata(struct snd_soc_component *component)
 				cs35l41->pdata.lrclk_frc <<
 				CS35L41_LRCLK_FRC_SHIFT);
 
-	if (cs35l41->pdata.amp_gain_zc)
-		regmap_update_bits(cs35l41->regmap, CS35L41_AMP_GAIN_CTRL,
-				CS35L41_AMP_GAIN_ZC_MASK,
-				cs35l41->pdata.amp_gain_zc <<
-				CS35L41_AMP_GAIN_ZC_SHIFT);
+	/*
+	 * Defer gain changes to a waveform zero crossing. This avoids
+	 * clicks and pops when Android changes the speaker gain.
+	 */
+	regmap_update_bits(cs35l41->regmap, CS35L41_AMP_GAIN_CTRL,
+			CS35L41_AMP_GAIN_ZC_MASK,
+			CS35L41_AMP_GAIN_ZC_MASK);
 
 	if (cs35l41->pdata.bst_vctrl)
 		regmap_update_bits(cs35l41->regmap, CS35L41_BSTCVRT_VCTRL1,
