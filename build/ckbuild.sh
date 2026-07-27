@@ -61,6 +61,7 @@ MKBOOTIMG="$(pwd)/build/mkbootimg/mkbootimg.py"
 MKDTBOIMG="$(pwd)/build/dtb/mkdtboimg.py"
 
 FK_VER="v1.1.2"
+KERNEL_NAME="${KERNEL_NAME:-Battery}"
 USE_CCACHE="${USE_CCACHE:-1}"
 DO_TAR="${DO_TAR:-1}"
 DO_ZIP="${DO_ZIP:-1}"
@@ -187,9 +188,9 @@ else
     FK_TYPE_SHORT="V"
 fi
 
-ZIP_PATH="$KDIR/build/Floppy_$FK_VER-$FK_TYPE-$CODENAME-$DATE.zip"
-TAR_PATH_ONEUI="$KDIR/build/FloppyOneUI_$FK_VER-$FK_TYPE-$CODENAME-$DATE.tar"
-TAR_PATH_AOSP="$KDIR/build/FloppyAOSP_$FK_VER-$FK_TYPE-$CODENAME-$DATE.tar"
+ZIP_PATH="$KDIR/build/${KERNEL_NAME}_$FK_VER-$FK_TYPE-$CODENAME-$DATE.zip"
+TAR_PATH_ONEUI="$KDIR/build/${KERNEL_NAME}OneUI_$FK_VER-$FK_TYPE-$CODENAME-$DATE.tar"
+TAR_PATH_AOSP="$KDIR/build/${KERNEL_NAME}AOSP_$FK_VER-$FK_TYPE-$CODENAME-$DATE.tar"
 PACKAGE_PATH=""
 NH_MODULE_PATH=""
 export NH_MODULE_PATH
@@ -197,7 +198,7 @@ export NH_MODULE_PATH
 echo -e "\n$(log_info "Build info:")
 - Device: $DEVICE ($CODENAME)
 - Addons: $FK_TYPE
-- FloppyKernel version: $FK_VER
+- $KERNEL_NAME kernel version: $FK_VER
 - Linux version: $LINUX_VER
 - Defconfig: $DEFCONFIG
 - Build date: $DATE

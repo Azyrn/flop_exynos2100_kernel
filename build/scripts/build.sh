@@ -52,10 +52,10 @@ build() {
     run_make $MAKE_JOBS "${MAKE_COMMON_ARGS[@]}" "$DEFCONFIG" $FRAGMENTS
 
     if [ "$IS_RELEASE" = "1" ]; then
-        VERSION_STR="-Floppy-$FK_VER-$FK_TYPE_SHORT-release"
+        VERSION_STR="-$KERNEL_NAME-$FK_VER-$FK_TYPE_SHORT-release"
         VERSION_NOAUTO=1
     else
-        VERSION_STR="-Floppy-$FK_VER-$FK_TYPE_SHORT"
+        VERSION_STR="-$KERNEL_NAME-$FK_VER-$FK_TYPE_SHORT"
         VERSION_NOAUTO=0
     fi
 
