@@ -3440,7 +3440,7 @@
 		#cooling-cells = <0x02>;
 		ect-coeff-index = <0x03>;
 		governor = "interactive";
-		interactive_info = <676000 60 0>;
+		interactive_info = <585000 75 0>;
 		gpu_dvfs_table_size = <10 9>;
 		gpu_dvfs_table = <
 			949000 78  95 5 3172000 858000 0 0 16
@@ -3493,7 +3493,7 @@
 		gpu_inter_frame_dynamic_freq = <767000>;
 		gpu_perf_gathering = <0>;
 		gpu_runtime_pm_delay_time = <50>;
-		gpu_dvfs_polling_time = <12>;
+		gpu_dvfs_polling_time = <20>;
 		gpu_weight_table_idx_0 = <5>;
 		gpu_weight_table_idx_1 = <5>;
 		gpu_interactive_fix = <0>;
