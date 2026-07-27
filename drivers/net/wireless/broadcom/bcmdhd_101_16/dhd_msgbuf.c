@@ -5474,7 +5474,9 @@ dhd_prot_process_msgbuf_edl(dhd_pub_t *dhd, uint32 *edl_itmes)
 			ring->rd, ring->wr, depth));
 	}
 
+#ifdef SHOW_LOGTRACE
 	dhd_schedule_logtrace(dhd->info);
+#endif /* SHOW_LOGTRACE */
 
 	return FALSE;
 }

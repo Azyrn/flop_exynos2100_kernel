@@ -7670,12 +7670,14 @@ dhd_event_logtrace_process_edl(dhd_pub_t *dhdp, uint8 *data,
 	 * check 'dhdp->logtrace_pkt_sendup' and if true alloc an skb
 	 * copy the event data to the skb and send it up the stack
 	 */
+#ifdef SHOW_LOGTRACE
 	if (dhdp->logtrace_pkt_sendup) {
 		DHD_INFO(("%s: send up event log, len %u bytes\n", __FUNCTION__,
 				(uint32)(ltoh16(msg->pyld_hdr.length) +
 				sizeof(info_buf_payload_hdr_t) + 4)));
 		dhd_sendup_info_buf(dhdp, (uint8 *)msg);
 	}
+#endif /* SHOW_LOGTRACE */
 
 	return BCME_OK;
 }

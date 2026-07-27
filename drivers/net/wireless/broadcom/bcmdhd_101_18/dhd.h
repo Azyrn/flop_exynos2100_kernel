@@ -2198,7 +2198,7 @@ extern void dhd_wakeup_ioctl_event(dhd_pub_t *pub, dhd_ioctl_recieved_status_t r
 static INLINE void dhd_wakeup_ioctl_event(dhd_pub_t *pub, dhd_ioctl_recieved_status_t reason)
 { printf("%s is NOT implemented for SDIO", __FUNCTION__); return; }
 #endif
-#ifdef SHOW_LOGTRACE
+#if defined(SHOW_LOGTRACE) || defined(EWP_EDL)
 /* Bound and delay are fine tuned after several experiments and these
  * are the best case values to handle bombarding of console logs.
  */
@@ -2206,7 +2206,7 @@ static INLINE void dhd_wakeup_ioctl_event(dhd_pub_t *pub, dhd_ioctl_recieved_sta
 #define DHD_EVENT_LOGTRACE_RESCHEDULE_DELAY_MS 10u
 extern int dhd_os_read_file(void *file, char *buf, uint32 size);
 extern int dhd_os_seek_file(void *file, int64 offset);
-#endif /* SHOW_LOGTRACE */
+#endif /* SHOW_LOGTRACE || EWP_EDL */
 int dhd_os_write_file_posn(void *fp, unsigned long *posn,
 		void *buf, unsigned long buflen);
 int dhd_msix_message_set(dhd_pub_t *dhdp, uint table_entry,
@@ -2359,7 +2359,7 @@ typedef struct {
 	uint32 tick;		/* O/S tick time (usec) */
 } dhd_timeout_t;
 
-#ifdef SHOW_LOGTRACE
+#if defined(SHOW_LOGTRACE) || defined(EWP_EDL)
 typedef struct {
 	uint  num_fmts;
 	char **fmts;
@@ -2377,7 +2377,7 @@ typedef struct {
 	uint32 rom_rodata_start;
 	uint32 rom_rodata_end;
 } dhd_event_log_t;
-#endif /* SHOW_LOGTRACE */
+#endif /* SHOW_LOGTRACE || EWP_EDL */
 
 #if defined(APF)
 /*

@@ -18236,9 +18236,9 @@ static int
 dhd_log_flush(dhd_pub_t *dhdp, log_dump_type_t *type)
 {
 	unsigned long flags = 0;
-#ifdef EWP_EDL
+#if defined(SHOW_LOGTRACE) && defined(EWP_EDL)
 	int i = 0;
-#endif /* EWP_EDL */
+#endif /* SHOW_LOGTRACE && EWP_EDL */
 	dhd_info_t *dhd_info = NULL;
 
 	BCM_REFERENCE(dhd_info);

@@ -153,9 +153,9 @@ typedef struct dhd_info {
 	wait_queue_head_t ctrl_wait;
 	atomic_t pend_8021x_cnt;
 	dhd_attach_states_t dhd_state;
-#ifdef SHOW_LOGTRACE
+#if defined(SHOW_LOGTRACE) || defined(EWP_EDL)
 	dhd_event_log_t event_data;
-#endif /* SHOW_LOGTRACE */
+#endif /* SHOW_LOGTRACE || EWP_EDL */
 
 #if defined(CONFIG_HAS_EARLYSUSPEND) && defined(DHD_USE_EARLYSUSPEND)
 	struct early_suspend early_suspend;
