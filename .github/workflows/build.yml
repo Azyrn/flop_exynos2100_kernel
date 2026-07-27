@@ -148,7 +148,8 @@ jobs:
           cp "${oneui_tars[0]}" "${aosp_tars[0]}" artifact/odin/
           cp out/arch/arm64/boot/Image artifact/debug/
           cp out/arch/arm64/boot/dts/exynos/exynos2100.dtb artifact/debug/
-          cp out/.config log.txt artifact/debug/
+          cp out/.config artifact/debug/config
+          cp log.txt artifact/debug/
           git rev-parse HEAD > artifact/debug/commit.txt
 
           (
@@ -156,8 +157,7 @@ jobs:
             sha256sum \
               flashable/*.zip \
               odin/*.tar \
-              debug/Image \
-              debug/exynos2100.dtb > SHA256SUMS
+              debug/* > SHA256SUMS
           )
 
           short_sha="${GITHUB_SHA::7}"
