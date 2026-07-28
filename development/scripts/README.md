@@ -14,20 +14,7 @@
 | `download-github-run.sh` | Download a successful run by immutable ID | Creates a new local run folder |
 | `verify-flashable.sh` | Test ZIP and compare SHA-256 manifest | No |
 | `copy-flashable-to-phone.sh` | Verify and copy the ZIP to phone storage | Creates one storage folder/file; never flashes |
-| `battery-ab.sh start LABEL` / `finish LABEL` | Capture paired battery, thermal, time-in-state, suspend, and wakeup evidence | Writes host-side test logs; does not change phone settings |
 
 All helpers derive the project path from their own location. The whole workspace can therefore be moved later without editing absolute paths inside the scripts.
-
-Battery A/B snapshots default to `logs/battery-ab/LABEL/` outside the Git
-checkout. Use a unique label for every build, workload, and repetition:
-
-```bash
-./scripts/battery-ab.sh start battery-a-active-1
-# Run the controlled workload.
-./scripts/battery-ab.sh finish battery-a-active-1
-```
-
-The helper uses only rootless ADB reads. Restricted wakeup sources are marked
-as unavailable instead of using `su`.
 
 Defaults are in `scripts/lib/common.sh`. Override non-secret runtime values with environment variables documented in `config/workspace.env.example`.
